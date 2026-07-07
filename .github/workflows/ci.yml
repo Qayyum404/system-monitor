@@ -1,0 +1,20 @@
+name: CI
+
+on: [push]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: docker build -t system-monitor .
+
+      - name: Run container and smoke test
+        run: |
+          docker run -d -p 8000:8000 --name sysmon system-monitor
+          sleep 5
+          curl -f http://localhost:8000/ || exit 1
+          curl -f http://localhost:8000/metrics || exit 1
+          docker stop sysmon
